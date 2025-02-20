@@ -30,14 +30,14 @@ button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
 
 # Somehow the module gives opposite rotation direction signals
 def on_rotate_clockwise():
-    menu.prev()
-    print("Rotated counter-clockwise: previous menu")
-def on_rotate_counter_clockwise():
     menu.next()
     print("Rotated clockwise: next menu")
+def on_rotate_counter_clockwise():
+    menu.prev()
+    print("Rotated counter-clockwise: previous menu")
 
-encoder.when_rotated_clockwise = on_rotate_clockwise
-encoder.when_rotated_counter_clockwise = on_rotate_counter_clockwise
+encoder.when_rotated_clockwise = on_rotate_counter_clockwise
+encoder.when_rotated_counter_clockwise = on_rotate_clockwise
 
 def on_button_pressed():
     menu.select()
