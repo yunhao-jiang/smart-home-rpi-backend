@@ -42,3 +42,6 @@ class Menu:
             self.curr_index = 0
             self.curr = self.curr_list[self.curr_index]
             self.curr.display(self.lcd)
+    
+    def clear(self):
+        self.lcd.clear()
