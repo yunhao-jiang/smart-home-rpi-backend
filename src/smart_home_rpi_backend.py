@@ -28,12 +28,13 @@ PIN_CLK = 17 # WPi 0
 encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0, wrap=False, )
 button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
 
+# Somehow the module gives opposite rotation direction signals
 def on_rotate_clockwise():
-    menu.next()
-    print("Rotated clockwise: next menu")
-def on_rotate_counter_clockwise():
     menu.prev()
     print("Rotated counter-clockwise: previous menu")
+def on_rotate_counter_clockwise():
+    menu.next()
+    print("Rotated clockwise: next menu")
 
 encoder.when_rotated_clockwise = on_rotate_clockwise
 encoder.when_rotated_counter_clockwise = on_rotate_counter_clockwise
