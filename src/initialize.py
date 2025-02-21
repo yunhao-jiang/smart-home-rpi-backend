@@ -20,9 +20,9 @@ def initialize_menu():
 
     #  add more function such as receiving IR signals and etc. Do NOT implement this part yet.
 
-    def ir_send(file):
+    def ir_send(file, repetition):
         # Send the IR signal
-        subprocess.run(["ir-ctl", "-d", "/dev/lirc0", f"--send={file}"])
+        subprocess.run(["ir-ctl", "-d", "/dev/lirc0"]+ [f"--send={file}"] * repetition)
         lcd.text("Sent: " + file, 1)
         lcd.text("", 2)
         time.sleep(1)
@@ -39,13 +39,24 @@ def initialize_menu():
                 ["ir-ctl", "-d", "/dev/lirc1", f"--receive={filename}", "-1"],
                 timeout=10
             )
-            new_option = MenuOptions(name=f"root-ir-list-{filename}", line1="IR List", line1_marker=False, line2=f"{filename[:-4]}", line2_marker=True, action=None, parent=root_ir_list)
+            new_option = MenuOptions(name=f"root-ir-list-{filename}", line1="IR List", line1_marker=False, line2=f"{filename[:-4]}", line2_marker=True, 
+                                     action=ir_send, 
+                                     action_args={"file": f"{filename}", "repetition": 2}, 
+                                     parent=root_ir_list)
             file_idx += 1
             return root_ir_add_success
         except subprocess.TimeoutExpired:
             return root_ir_add_timeout
     
-    
+    # helper function for name and repetition
+    def ir_receive_helper():
+        rep_options = list(range(1, 6))
+        cur_option = 1
+        line1 = "Repetition times".center(16)
+        lcd.text(line1, 1)
+
+        lcd.text(line2, 2)
+
     
     
     ########## MENU OPTIONS ##########
@@ -70,5 +81,8 @@ def initialize_menu():
     # Third level - IR Add
     root_ir_add_success = MenuOptions(name="root-ir-add-success", line1="IR", line1_marker=False, line2="Add Success", line2_marker=False, action=lambda: root_ir_add_success.parent, parent=root_ir_add)
     root_ir_add_timeout = MenuOptions(name="root-ir-add-timeout", line1="IR", line1_marker=False, line2="Add Timeout", line2_marker=False, action=lambda: root_ir_add_timeout.parent, parent=root_ir_add)
+
+    # Fourth level - IR Add helper
+    # root_ir_add_success_helper = MenuOptions(name="root-ir-add-success-helper", line1="IR Add", line1_marker=False, line2="Add Success", line2_marker=False, action=lambda: root_ir_add_success.parent, parent=root_ir_add)
 
     return Menu(root, lcd)
