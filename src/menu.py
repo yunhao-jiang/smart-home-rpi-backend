@@ -38,10 +38,12 @@ class Menu:
                 self.curr_index = self.curr_list.index(self.curr) # get the index of the current node in the list
                 self.curr.display(self.lcd) # display the current node
         else:
-            self.curr_list = self.curr.children # if it's not a workflow, go to the next level of the menu
-            self.curr_index = 0
-            self.curr = self.curr_list[self.curr_index]
-            self.curr.display(self.lcd)
+            if self.curr.children: # if the current option has at least one child
+                self.curr_list = self.curr.children # if it's not a workflow, go to the next level of the menu
+                self.curr_index = 0
+                self.curr = self.curr_list[self.curr_index]
+                self.curr.display(self.lcd)
+
     
     def clear(self):
         self.lcd.clear()
