@@ -1,7 +1,3 @@
-from menu_options import MenuOptions
-from rpi_lcd import LCD
-import time
-
 class Menu:
     def __init__(self, root, lcd):
         self.curr = root.children[0] # on initialization, use the first child of the DUMMY root
@@ -15,6 +11,9 @@ class Menu:
         
         self.lcd = lcd
         self.curr.display(self.lcd) # initialize display
+        
+        self.input_mode = None
+        self.input_queue = []
 
     
     def next(self):

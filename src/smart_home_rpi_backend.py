@@ -4,6 +4,8 @@ import time
 import gpiozero
 import gpiozero.pins.lgpio
 import lgpio
+from input_menu import InputMenu
+from rpi_lcd import LCD
 # import threading
 
 def __patched_init(self, chip=None):
@@ -15,7 +17,14 @@ def __patched_init(self, chip=None):
 
 gpiozero.pins.lgpio.LGPIOFactory.__init__ = __patched_init
 
-menu = initialize_menu() # initialize the LCD menu sturcture
+
+lcd = LCD(width=16, rows=2)
+all_input_menu = InputMenu(options='all', lcd=lcd, max_input_length=16, min_input_length=1)
+letters_input_menu = InputMenu(options='letters', lcd=lcd, max_input_length=16, min_input_length=1)
+digit_input_menu = InputMenu(options='digits', lcd=lcd, max_input_length=1, min_input_length=1)
+menu = initialize_menu(lcd=lcd) # initialize the LCD menu sturcture
+
+input_menu = None
 
 # Rotary Encoder Pins
 PIN_SW = 22 # BCM Pin numbers - WiringPi 3
@@ -30,18 +39,56 @@ button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
 
 # Somehow the module gives opposite rotation direction signals
 def on_rotate_clockwise():
-    menu.next()
-    print("Rotated clockwise: next menu")
+    if menu.input_mode:
+        if menu.input_mode == 'all':
+            input_menu = all_input_menu
+        elif menu.input_mode == 'digits':
+            input_menu = digit_input_menu
+        elif menu.input_mode == 'letters':
+            input_menu = letters_input_menu
+        
+        input_menu.next()
+        print("Rotated clockwise: next input")
+    else:
+        menu.next()
+        print("Rotated clockwise: next menu")
 def on_rotate_counter_clockwise():
-    menu.prev()
-    print("Rotated counter-clockwise: previous menu")
+    if menu.input_mode:
+        if menu.input_mode == 'all':
+            input_menu = all_input_menu
+        elif menu.input_mode == 'digits':
+            input_menu = digit_input_menu
+        elif menu.input_mode == 'letters':
+            input_menu = letters_input_menu
+        
+        input_menu.previous()
+        print("Rotated counter clockwise: previous input")
+    else:
+        menu.prev()
+        print("Rotated counter clockwise: previous menu")
 
 encoder.when_rotated_clockwise = on_rotate_counter_clockwise
 encoder.when_rotated_counter_clockwise = on_rotate_clockwise
 
 def on_button_pressed():
-    menu.select()
-    print("Button pressed: select menu")
+    if menu.input_mode:
+        if menu.input_mode == 'all':
+            input_menu = all_input_menu
+        elif menu.input_mode == 'digits':
+            input_menu = digit_input_menu
+        elif menu.input_mode == 'letters':
+            input_menu = letters_input_menu
+        
+        
+        print("Button pressed: select input")
+        value = input_menu.select()
+        if value:
+            menu.input_queue.append(value)
+            menu.input_mode = None
+            menu.select()
+    else:
+        print("Button pressed: select menu")
+        menu.select()
 
 button.when_pressed = on_button_pressed
 
