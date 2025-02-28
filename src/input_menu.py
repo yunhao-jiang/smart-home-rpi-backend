@@ -17,26 +17,47 @@ class InputMenu:
         self.min_input_length = min_input_length
         
     def __display__(self):
-        MAX_CHARS = 14
-        line1 = ''
-        i = self.current_index
-        while True:
-            if len(line1) + len(self.input_list[i]) <= MAX_CHARS:
-                line1 += self.input_list[i] + ' '
-                i = (i + 1) % len(self.input_list)
+        MAX_CHARS = 16
+        line1 = f'<{self.input_list[self.current_index]}>'
+        
+        # center it and count the spaces on the left
+        spaces_left = (MAX_CHARS - len(line1)) // 2
+        print(spaces_left)
+        
+        line1_left = ''
+        
+        # add previous self.input_list to line 1
+        i = 1
+        while spaces_left > 0:
+            to_add = self.input_list[(self.current_index - i) % len(self.input_list)]
+            if len(to_add) + 1 <= spaces_left:
+                line1_left = to_add + " " + line1_left
+                spaces_left -= (len(to_add) + 1)
+                i += 1
             else:
                 break
             
+
             
-        # add < and > to line 1
-        line1 = line1.strip()
-        line1 = '<' + line1
-        # padd line 1 to 15 characters
-        line1 = line1.ljust(15, ' ')
-        line1 = line1 + '>'
+        # add next self.input_list to line 1
+        
+        spaces_right = MAX_CHARS - len(line1) - len(line1_left)
+        i = 1
+        line1_right = ''
+        while spaces_right > 0:
+            to_add = self.input_list[(self.current_index + i) % len(self.input_list)]
+            if len(to_add) + 1 <= spaces_right:
+                line1_right += " " + to_add
+                spaces_right -= (len(to_add) + 1)
+                i += 1
+            else:
+                break
+        
+        
+        line1 = line1_left + line1 + line1_right
         
         self.lcd.text(line1, 1)
-        self.lcd.text(self.input, 2)
+        self.lcd.text(":" + self.input, 2)
             
         
     def next(self):

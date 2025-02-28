@@ -2,6 +2,7 @@ from menu import Menu
 from menu_options import MenuOptions
 import time
 import subprocess
+import os
 
 
 def initialize_menu(lcd):
@@ -21,10 +22,10 @@ def initialize_menu(lcd):
     def ir_send(file, repetition):
         # Send the IR signal
         subprocess.run(["ir-ctl", "-d", "/dev/lirc0"]+ [f"--send=data/{file}"] * repetition + ["--gap=50000"])
-        lcd.text("Sent: " + file, 1)
-        lcd.text("", 2)
+        fn_no_ext_rep = file[:file.rfind("-")]
+        lcd.text("SENT: ", 1)
+        lcd.text(fn_no_ext_rep.center(16), 2)
         time.sleep(1)
-        # lcd.text(output,1)
     
     def ir_receive():
         name = menu.input_queue.pop(0)
@@ -53,7 +54,37 @@ def initialize_menu(lcd):
     def ir_digit_input():
         menu.input_mode = 'digits'
         return root_ir_add_repetition
+    
+    def ir_delete(node, filename):
+        os.remove(f"./data/{filename}")
+        for n in node:
+            n.parent = None
+            del(n)
+            
+        lcd.text("Deleted".center(16), 1)
+        lcd.text(filename[:filename.rfind("-")].center(16), 2)
+        time.sleep(1)
+        return root_ir_delete
 
+    def add_existing_irs(dir="./data"):
+        ir_files = [f for f in os.listdir(dir) if f.endswith(".ir")]
+        for filename in ir_files: 
+            # filename = f"{name}-{repetition}.ir"
+            extension_idx = filename.rfind(".")
+            fn_no_extension = filename[:extension_idx]
+
+            split_idx = fn_no_extension.rfind("-")
+            name = fn_no_extension[:split_idx]
+            repetition = int(fn_no_extension[split_idx+1:])
+            new_option = MenuOptions(name=f"root-ir-list-{name}", line1="IR List", line1_marker=False, line2=f"{name}", line2_marker=True, 
+                                     action=ir_send, 
+                                     action_args={"file": f"{filename}", "repetition": repetition}, 
+                                     parent=root_ir_list)
+            
+            delete_option = MenuOptions(name=f"root-ir-list-{name}-delete", line1="IR Delete", line1_marker=False, line2=f"{name}", line2_marker=True,
+                         action=ir_delete, parent=root_ir_delete)
+            delete_option.action_args = {"node": [new_option, delete_option], "filename" : filename}
+    
     
     
     ########## MENU OPTIONS ##########
@@ -68,11 +99,14 @@ def initialize_menu(lcd):
     # Second level - IR
     root_ir_list = MenuOptions(name="root-ir-list", line1="IR", line1_marker=False, line2="List", line2_marker=True, action=None, parent=root_ir)
     root_ir_add = MenuOptions(name="root-ir-add", line1="IR", line1_marker=False, line2="Add", line2_marker=True, action=ir_all_input, parent=root_ir)
+    root_ir_delete = MenuOptions(name="root-ir-delete", line1="IR", line1_marker=False, line2="Delete", line2_marker=True, action=None, parent=root_ir)
     root_ir_back = MenuOptions(name="root-ir-back", line1="IR", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_back.parent, parent=root_ir) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
     
     # TODO: More menu options can be added here
     # Third level - IR List
+    add_existing_irs()  # add existing IR files to the list
     root_ir_list_back = MenuOptions(name="root-ir-list-back", line1="IR List", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_list_back.parent, parent=root_ir_list) 
+    root_ir_delete_back = MenuOptions(name="root-ir-delete-back", line1="IR Delete", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_delete_back.parent, parent=root_ir_delete)
 
     # Third level - IR Add
     root_ir_add_filename = MenuOptions(name="root-ir-add-input", line1="Enter File Name", line1_marker=False, line2="turn the knob...", line2_marker=False, action=ir_digit_input, parent=root_ir_add)

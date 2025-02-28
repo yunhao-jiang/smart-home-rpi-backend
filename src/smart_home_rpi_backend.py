@@ -19,8 +19,8 @@ gpiozero.pins.lgpio.LGPIOFactory.__init__ = __patched_init
 
 
 lcd = LCD(width=16, rows=2)
-all_input_menu = InputMenu(options='all', lcd=lcd, max_input_length=16, min_input_length=1)
-letters_input_menu = InputMenu(options='letters', lcd=lcd, max_input_length=16, min_input_length=1)
+all_input_menu = InputMenu(options='all', lcd=lcd, max_input_length=14, min_input_length=1)
+letters_input_menu = InputMenu(options='letters', lcd=lcd, max_input_length=14, min_input_length=1)
 digit_input_menu = InputMenu(options='digits', lcd=lcd, max_input_length=1, min_input_length=1)
 menu = initialize_menu(lcd=lcd) # initialize the LCD menu sturcture
 
