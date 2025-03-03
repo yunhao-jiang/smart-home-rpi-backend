@@ -24,6 +24,9 @@ class Menu:
         self.input_mode = None
         self.input_queue = []
         #TODO: update the sensor data somehow
+
+    def is_at_root(self):
+        return self.curr == self.root
     
     def next(self):
         self.curr_index = (self.curr_index + 1) % len(self.curr_list) # go to next index

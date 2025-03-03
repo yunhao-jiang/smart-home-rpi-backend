@@ -36,17 +36,17 @@ button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
 # Somehow the module gives opposite rotation direction signals
 last_interaction = time.time()
 
-TIMEOUT = 30
+TIMEOUT = 3
 def check_timeout():
     global last_interaction
     while True:
-        if time.time() - last_interaction > TIMEOUT:
+        if time.time() - last_interaction > TIMEOUT and not menu.is_at_root():
             menu.return_to_root_and_refresh()
             last_interaction = time.time()
             print("Timeout: Returning to root")
         time.sleep(1)
 
-timeout_thread = threading.Thread(target=check_timeout)
+timeout_thread = threading.Thread(target=check_timeout, daemon=True)
 timeout_thread.start()
 ###################### GPIOZero Event Handlers ######################
 def handle_input_mode():
