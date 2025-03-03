@@ -83,7 +83,7 @@ def initialize_menu(lcd, dht_sensor):
             split_idx = fn_no_extension.rfind("-")
             name = fn_no_extension[:split_idx]
             repetition = int(fn_no_extension[split_idx+1:])
-            new_option = MenuOptions(name=f"root-ir-list-{name}", line1="IR List", line1_marker=False, line2=f"{name}", line2_marker=True, 
+            new_option = MenuOptions(name=f"root-ir-list-{name}", line1="Remote List", line1_marker=False, line2=f"{name}", line2_marker=True, 
                                      action=ir_send, 
                                      action_args={"file": f"{filename}", "repetition": repetition}, 
                                      parent=root_ir_list)
@@ -104,22 +104,22 @@ def initialize_menu(lcd, dht_sensor):
     root = MenuOptions(name="dummy", line1="SMART HOME HUB", line1_marker=False, line2="T:XXC H:XX%", line2_marker=False, action=update_root_stats, parent=None) 
     
     # First level
-    root_stat = MenuOptions(name="root-stat", line1="SETTINGS", line1_marker=False, line2="STAT", line2_marker=True, action=None, parent=root)
-    root_ir = MenuOptions(name="root-ir", line1="SETTINGS", line1_marker=False, line2="IR", line2_marker=True, action=None, parent=root)
-    root_sensors = MenuOptions(name="root-sensors", line1="SETTINGS", line1_marker=False, line2="SENSORS", line2_marker=True, action=None, parent=root)
-    root_about = MenuOptions(name="root-about", line1="SETTINGS", line1_marker=False, line2="ABOUT", line2_marker=True, action=about_page, parent=root) # the actioin is a callable function definied above that will display the about page, since it's not going to return anything BUT a workflow (has actioni), it will stay at the current node
-    root_back = MenuOptions(name="root-back", line1="SETTINGS", line1_marker=False, line2="BACK", line2_marker=True, action=lambda: root_back.parent, parent=root) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
+    root_stat = MenuOptions(name="root-stat", line1="Features", line1_marker=False, line2="Stats", line2_marker=True, action=None, parent=root)
+    root_ir = MenuOptions(name="root-ir", line1="Features", line1_marker=False, line2="IR Remote", line2_marker=True, action=None, parent=root)
+    root_sensors = MenuOptions(name="root-sensors", line1="Features", line1_marker=False, line2="Sensors", line2_marker=True, action=None, parent=root)
+    root_about = MenuOptions(name="root-about", line1="Features", line1_marker=False, line2="About", line2_marker=True, action=about_page, parent=root) # the actioin is a callable function definied above that will display the about page, since it's not going to return anything BUT a workflow (has actioni), it will stay at the current node
+    root_back = MenuOptions(name="root-back", line1="Features", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_back.parent, parent=root) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
 
     # Second level - IR
-    root_ir_list = MenuOptions(name="root-ir-list", line1="IR", line1_marker=False, line2="List", line2_marker=True, action=None, parent=root_ir)
-    root_ir_add = MenuOptions(name="root-ir-add", line1="IR", line1_marker=False, line2="Add", line2_marker=True, action=ir_all_input, parent=root_ir)
-    root_ir_delete = MenuOptions(name="root-ir-delete", line1="IR", line1_marker=False, line2="Delete", line2_marker=True, action=None, parent=root_ir)
-    root_ir_back = MenuOptions(name="root-ir-back", line1="IR", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_back.parent, parent=root_ir) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
+    root_ir_list = MenuOptions(name="root-ir-list", line1="IR Remote", line1_marker=False, line2="List", line2_marker=True, action=None, parent=root_ir)
+    root_ir_add = MenuOptions(name="root-ir-add", line1="IR Remote", line1_marker=False, line2="Add", line2_marker=True, action=ir_all_input, parent=root_ir)
+    root_ir_delete = MenuOptions(name="root-ir-delete", line1="IR Remote", line1_marker=False, line2="Delete", line2_marker=True, action=None, parent=root_ir)
+    root_ir_back = MenuOptions(name="root-ir-back", line1="IR Remote", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_back.parent, parent=root_ir) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
     
     # Third level - IR List
     add_existing_irs()  # add existing IR files to the list
-    root_ir_list_back = MenuOptions(name="root-ir-list-back", line1="IR List", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_list_back.parent, parent=root_ir_list) 
-    root_ir_delete_back = MenuOptions(name="root-ir-delete-back", line1="IR Delete", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_delete_back.parent, parent=root_ir_delete)
+    root_ir_list_back = MenuOptions(name="root-ir-list-back", line1="Remote List", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_list_back.parent, parent=root_ir_list) 
+    root_ir_delete_back = MenuOptions(name="root-ir-delete-back", line1="Delete Remote", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_delete_back.parent, parent=root_ir_delete)
 
     # Third level - IR Add
     root_ir_add_filename = MenuOptions(name="root-ir-add-input", line1="Enter File Name", line1_marker=False, line2="turn the knob...", line2_marker=False, action=ir_digit_input, parent=root_ir_add)

@@ -57,7 +57,7 @@ last_interaction = time.time()
 def check_timeout():
     global last_interaction
     while True:
-        if time.time() - last_interaction > TIMEOUT and not menu.is_at_root():
+        if time.time() - last_interaction > TIMEOUT:
             menu.return_to_root_and_refresh()
             last_interaction = time.time()
             print("Timeout: Returning to root")
