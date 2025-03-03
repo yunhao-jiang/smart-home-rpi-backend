@@ -43,9 +43,16 @@ def initialize_menu(lcd):
                                      action=ir_send, 
                                      action_args={"file": f"{filename}", "repetition": repetition}, 
                                      parent=root_ir_list)
-            return root_ir_add_success
+            lcd.text("IR".center(16), 1)
+            lcd.text("Add Success".center(16), 2)
+            time.sleep(2)
+            return root_ir_add
         except subprocess.TimeoutExpired:
-            return root_ir_add_timeout
+            lcd.text("IR".center(16), 1)
+            lcd.text("Add Timeout".center(16), 2)
+            os.remove(f"./data/{filename}")
+            time.sleep(2)
+            return root_ir_add
         
     def ir_all_input():
         menu.input_mode = 'all'
@@ -102,7 +109,6 @@ def initialize_menu(lcd):
     root_ir_delete = MenuOptions(name="root-ir-delete", line1="IR", line1_marker=False, line2="Delete", line2_marker=True, action=None, parent=root_ir)
     root_ir_back = MenuOptions(name="root-ir-back", line1="IR", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_back.parent, parent=root_ir) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
     
-    # TODO: More menu options can be added here
     # Third level - IR List
     add_existing_irs()  # add existing IR files to the list
     root_ir_list_back = MenuOptions(name="root-ir-list-back", line1="IR List", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_ir_list_back.parent, parent=root_ir_list) 
@@ -111,9 +117,6 @@ def initialize_menu(lcd):
     # Third level - IR Add
     root_ir_add_filename = MenuOptions(name="root-ir-add-input", line1="Enter File Name", line1_marker=False, line2="turn the knob...", line2_marker=False, action=ir_digit_input, parent=root_ir_add)
     root_ir_add_repetition = MenuOptions(name="root-ir-add-repetition", line1="Enter Repetition", line1_marker=False, line2="turn the knob...", line2_marker=False, action=ir_receive, parent=root_ir_add_filename)
-    
-    root_ir_add_success = MenuOptions(name="root-ir-add-success", line1="IR", line1_marker=False, line2="Add Success", line2_marker=False, action=lambda: root_ir, parent=root_ir_add_repetition)
-    root_ir_add_timeout = MenuOptions(name="root-ir-add-timeout", line1="IR", line1_marker=False, line2="Add Timeout", line2_marker=False, action=lambda: root_ir, parent=root_ir_add_repetition)
 
     menu = Menu(root, lcd)
     return menu
