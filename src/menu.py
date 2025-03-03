@@ -1,12 +1,13 @@
 class Menu:
     def __init__(self, root, lcd):
-        self.curr = root.children[0] # on initialization, use the first child of the DUMMY root
+        self.curr = root # on initialization, use the first child of the DUMMY root
+        self.root = root
 
-        self.curr_list = root.children # this list keeps track of the current level of the menu
+        self.curr_list = [root] # this list keeps track of the current level of the menu
         self.curr_index = 0 # this is the index of the current node in the list
 
         
-        self.parent = root # this is the parent of the current node
+        self.parent = None # this is the parent of the current node
         self.children = self.curr.children # this is the children of the current node
         
         self.lcd = lcd
@@ -15,6 +16,14 @@ class Menu:
         self.input_mode = None
         self.input_queue = []
 
+    def return_to_root_and_refresh(self):
+        self.curr = self.root
+        self.curr_list = [self.root]
+        self.curr_index = 0
+        self.curr.display(self.lcd)
+        self.input_mode = None
+        self.input_queue = []
+        #TODO: update the sensor data somehow
     
     def next(self):
         self.curr_index = (self.curr_index + 1) % len(self.curr_list) # go to next index

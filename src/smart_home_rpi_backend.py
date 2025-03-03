@@ -6,7 +6,7 @@ import gpiozero.pins.lgpio
 import lgpio
 from input_menu import InputMenu
 from rpi_lcd import LCD
-# import threading
+import threading
 
 def __patched_init(self, chip=None):
     gpiozero.pins.lgpio.LGPIOFactory.__bases__[0].__init__(self)
@@ -24,43 +24,54 @@ letters_input_menu = InputMenu(options='letters', lcd=lcd, max_input_length=14, 
 digit_input_menu = InputMenu(options='digits', lcd=lcd, max_input_length=1, min_input_length=1)
 menu = initialize_menu(lcd=lcd) # initialize the LCD menu sturcture
 
-input_menu = None
-
 # Rotary Encoder Pins
-PIN_SW = 22 # BCM Pin numbers - WiringPi 3
+PIN_SW = 17 # BCM Pin numbers - WiringPi 3
 PIN_DT = 27 # WPi 2
-PIN_CLK = 17 # WPi 0
+PIN_CLK = 22 # WPi 0
 
-# TODO: This should be replaced by a function that checks the rotary encoder, use WiringPi Pin 3 for SW (button press), Pin 2 for DT and Pin 0 for CLK
-# TODO: You may need to use threading to handle the rotary encoder (so it won't block the main thread)
-# GPIOZero handles events in the background automatically
+
 encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0, wrap=False, )
 button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
 
 # Somehow the module gives opposite rotation direction signals
+last_interaction = time.time()
+
+TIMEOUT = 30
+def check_timeout():
+    global last_interaction
+    while True:
+        if time.time() - last_interaction > TIMEOUT:
+            menu.return_to_root_and_refresh()
+            last_interaction = time.time()
+            print("Timeout: Returning to root")
+        time.sleep(1)
+
+timeout_thread = threading.Thread(target=check_timeout)
+timeout_thread.start()
+###################### GPIOZero Event Handlers ######################
+def handle_input_mode():
+    if menu.input_mode == 'all':
+        return all_input_menu
+    elif menu.input_mode == 'digits':
+        return digit_input_menu
+    elif menu.input_mode == 'letters':
+        return letters_input_menu
+
 def on_rotate_clockwise():
+    global last_interaction
+    last_interaction = time.time()
     if menu.input_mode:
-        if menu.input_mode == 'all':
-            input_menu = all_input_menu
-        elif menu.input_mode == 'digits':
-            input_menu = digit_input_menu
-        elif menu.input_mode == 'letters':
-            input_menu = letters_input_menu
-        
+        input_menu = handle_input_mode()
         input_menu.next()
         print("Rotated clockwise: next input")
     else:
         menu.next()
         print("Rotated clockwise: next menu")
 def on_rotate_counter_clockwise():
+    global last_interaction
+    last_interaction = time.time()
     if menu.input_mode:
-        if menu.input_mode == 'all':
-            input_menu = all_input_menu
-        elif menu.input_mode == 'digits':
-            input_menu = digit_input_menu
-        elif menu.input_mode == 'letters':
-            input_menu = letters_input_menu
-        
+        input_menu = handle_input_mode()
         input_menu.previous()
         print("Rotated counter clockwise: previous input")
     else:
@@ -71,15 +82,10 @@ encoder.when_rotated_clockwise = on_rotate_counter_clockwise
 encoder.when_rotated_counter_clockwise = on_rotate_clockwise
 
 def on_button_pressed():
+    global last_interaction
+    last_interaction = time.time()
     if menu.input_mode:
-        if menu.input_mode == 'all':
-            input_menu = all_input_menu
-        elif menu.input_mode == 'digits':
-            input_menu = digit_input_menu
-        elif menu.input_mode == 'letters':
-            input_menu = letters_input_menu
-        
-        
+        input_menu = handle_input_mode()
         print("Button pressed: select input")
         value = input_menu.select()
         if value:

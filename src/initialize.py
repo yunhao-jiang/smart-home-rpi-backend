@@ -91,11 +91,14 @@ def initialize_menu(lcd):
             delete_option = MenuOptions(name=f"root-ir-list-{name}-delete", line1="IR Delete", line1_marker=False, line2=f"{name}", line2_marker=True,
                          action=ir_delete, parent=root_ir_delete)
             delete_option.action_args = {"node": [new_option, delete_option], "filename" : filename}
+
+
+    
     
     
     
     ########## MENU OPTIONS ##########
-    root = MenuOptions(name="dummy", line1="Root", line1_marker=False, line2="", line2_marker=False, action=None, parent=None) # This is a dummy root that won't be shown
+    root = MenuOptions(name="dummy", line1="SMART HOME HUB", line1_marker=False, line2="TEMP60F HUMID50%", line2_marker=False, action=None, parent=None) 
     
     # First level
     root_stat = MenuOptions(name="root-stat", line1="STAT", line1_marker=True, line2="", line2_marker=False, action=None, parent=root)

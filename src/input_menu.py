@@ -22,7 +22,6 @@ class InputMenu:
         
         # center it and count the spaces on the left
         spaces_left = (MAX_CHARS - len(line1)) // 2
-        print(spaces_left)
         
         line1_left = ''
         
