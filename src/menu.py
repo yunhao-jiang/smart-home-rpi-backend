@@ -11,19 +11,21 @@ class Menu:
         self.children = self.curr.children # this is the children of the current node
         
         self.lcd = lcd
+        self.root.action(refresh_only=True) # initialize the root node with the current temperature and humidity
         self.curr.display(self.lcd) # initialize display
         
         self.input_mode = None
         self.input_queue = []
+        
 
     def return_to_root_and_refresh(self):
         self.curr = self.root
         self.curr_list = [self.root]
         self.curr_index = 0
+        self.root.action(refresh_only=True) # get the most recent temperature and humidity
         self.curr.display(self.lcd)
         self.input_mode = None
         self.input_queue = []
-        #TODO: update the sensor data somehow
     
     def next(self):
         self.curr_index = (self.curr_index + 1) % len(self.curr_list) # go to next index
@@ -42,7 +44,10 @@ class Menu:
                 self.curr.display(self.lcd)
             else: # if the workflow returns a node, go to that node
                 self.curr = next_hop
-                self.curr_list = self.curr.parent.children # get the list of curr level node from the parent
+                if next_hop == self.root: # there is no parent for the root node so this is temp fix
+                    self.curr_list = [self.root]
+                else:
+                    self.curr_list = self.curr.parent.children # get the list of curr level node from the parent
                 self.curr_index = self.curr_list.index(self.curr) # get the index of the current node in the list
                 self.curr.display(self.lcd) # display the current node
         else:

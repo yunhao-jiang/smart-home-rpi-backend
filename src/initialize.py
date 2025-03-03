@@ -5,7 +5,7 @@ import subprocess
 import os
 
 
-def initialize_menu(lcd):
+def initialize_menu(lcd, dht_sensor):
     ########## VARS ##########
 
     ########## CUSTOMIZE FUNCTIONS ##########
@@ -93,18 +93,22 @@ def initialize_menu(lcd):
             delete_option.action_args = {"node": [new_option, delete_option], "filename" : filename}
 
 
-    
-    
-    
+    def update_root_stats(refresh_only=False):
+        root.line2 = f"T:{dht_sensor.temperature}C H:{dht_sensor.humidity}%".center(16)
+        if not refresh_only:
+            return root.children[0] # go to the first child of the root node (work like a normal menu without action)
+        else: 
+            return None # if this is refresh only, return None to stay at the current node
     
     ########## MENU OPTIONS ##########
-    root = MenuOptions(name="dummy", line1="SMART HOME HUB", line1_marker=False, line2="TEMP60F HUMID50%", line2_marker=False, action=None, parent=None) 
+    root = MenuOptions(name="dummy", line1="SMART HOME HUB", line1_marker=False, line2="T:XXC H:XX%", line2_marker=False, action=update_root_stats, parent=None) 
     
     # First level
     root_stat = MenuOptions(name="root-stat", line1="STAT", line1_marker=True, line2="", line2_marker=False, action=None, parent=root)
     root_ir = MenuOptions(name="root-ir", line1="IR", line1_marker=True, line2="", line2_marker=False, action=None, parent=root)
     root_sensors = MenuOptions(name="root-sensors", line1="SENSORS", line1_marker=True, line2="", line2_marker=False, action=None, parent=root)
     root_about = MenuOptions(name="root-about", line1="ABOUT", line1_marker=True, line2="", line2_marker=False, action=about_page, parent=root) # the actioin is a callable function definied above that will display the about page, since it's not going to return anything BUT a workflow (has actioni), it will stay at the current node
+    root_back = MenuOptions(name="root-back", line1="BACK", line1_marker=True, line2="", line2_marker=False, action=lambda: root_back.parent, parent=root) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
 
     # Second level - IR
     root_ir_list = MenuOptions(name="root-ir-list", line1="IR", line1_marker=False, line2="List", line2_marker=True, action=None, parent=root_ir)

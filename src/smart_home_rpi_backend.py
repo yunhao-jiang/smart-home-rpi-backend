@@ -1,3 +1,4 @@
+###################### Imports ######################
 from initialize import initialize_menu
 from flask import Flask, request, jsonify
 import time
@@ -7,6 +8,8 @@ import lgpio
 from input_menu import InputMenu
 from rpi_lcd import LCD
 import threading
+import board
+import adafruit_dht
 
 def __patched_init(self, chip=None):
     gpiozero.pins.lgpio.LGPIOFactory.__bases__[0].__init__(self)
@@ -17,26 +20,40 @@ def __patched_init(self, chip=None):
 
 gpiozero.pins.lgpio.LGPIOFactory.__init__ = __patched_init
 
-
-lcd = LCD(width=16, rows=2)
-all_input_menu = InputMenu(options='all', lcd=lcd, max_input_length=14, min_input_length=1)
-letters_input_menu = InputMenu(options='letters', lcd=lcd, max_input_length=14, min_input_length=1)
-digit_input_menu = InputMenu(options='digits', lcd=lcd, max_input_length=1, min_input_length=1)
-menu = initialize_menu(lcd=lcd) # initialize the LCD menu sturcture
-
-# Rotary Encoder Pins
+###################### GPIO Ports & Constants ######################
 PIN_SW = 17 # BCM Pin numbers - WiringPi 3
 PIN_DT = 27 # WPi 2
 PIN_CLK = 22 # WPi 0
-
-
-encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0, wrap=False, )
-button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
-
-# Somehow the module gives opposite rotation direction signals
-last_interaction = time.time()
+PIN_DHT = board.D26 # this is BCM 26
+PIN_MOTION = 21 # WPi 29
 
 TIMEOUT = 30
+
+###################### Devices & Initilization ######################
+# Hardware
+lcd = LCD(width=16, rows=2)
+encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0, wrap=False, )
+button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
+dht_sensor = adafruit_dht.DHT11(PIN_DHT)
+
+temperature_c = dht_sensor.temperature
+humidity = dht_sensor.humidity
+print(f"Temp: {temperature_c}C, Humidity: {humidity}%")
+
+
+motion_sensor = gpiozero.MotionSensor(PIN_MOTION) # motion sensor doesn't really work for some reason
+motion_sensor.when_motion = lambda: print("Motion Detected")
+motion_sensor.when_no_motion = lambda: print("No Motion Detected")
+
+# Software
+all_input_menu = InputMenu(options='all', lcd=lcd, max_input_length=14, min_input_length=1)
+letters_input_menu = InputMenu(options='letters', lcd=lcd, max_input_length=14, min_input_length=1)
+digit_input_menu = InputMenu(options='digits', lcd=lcd, max_input_length=1, min_input_length=1)
+menu = initialize_menu(lcd=lcd, dht_sensor=dht_sensor) # initialize the LCD menu sturcture
+
+###################### Helpers ######################
+last_interaction = time.time()
+
 def check_timeout():
     global last_interaction
     while True:
@@ -48,6 +65,7 @@ def check_timeout():
 
 timeout_thread = threading.Thread(target=check_timeout)
 timeout_thread.start()
+
 ###################### GPIOZero Event Handlers ######################
 def handle_input_mode():
     if menu.input_mode == 'all':
