@@ -94,14 +94,21 @@ def initialize_menu(lcd, dht_sensor):
 
 
     def update_root_stats(refresh_only=False):
-        root.line2 = f"T:{dht_sensor.temperature}C H:{dht_sensor.humidity}%".center(16)
+        local_time = time.localtime()
+        root.line1 = time.strftime("%m/%d/%Y %H:%M", local_time).center(16)
+        try: 
+            temp = dht_sensor.temperature
+            humid = dht_sensor.humidity
+            root.line2 = f"T:{temp}C H:{humid}%".center(16)
+        except Exception as e:
+            print(e)
         if not refresh_only:
             return root.children[0] # go to the first child of the root node (work like a normal menu without action)
         else: 
             return None # if this is refresh only, return None to stay at the current node
     
     ########## MENU OPTIONS ##########
-    root = MenuOptions(name="dummy", line1="SMART HOME HUB", line1_marker=False, line2="T:XXC H:XX%", line2_marker=False, action=update_root_stats, parent=None) 
+    root = MenuOptions(name="dummy", line1="HH:RR MM/DD/YYYY", line1_marker=False, line2="T:XXC H:XX%", line2_marker=False, action=update_root_stats, parent=None) 
     
     # First level
     root_stat = MenuOptions(name="root-stat", line1="Features", line1_marker=False, line2="Stats", line2_marker=True, action=None, parent=root)
