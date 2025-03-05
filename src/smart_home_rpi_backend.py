@@ -29,7 +29,7 @@ PIN_CLK = 22 # WPi 0
 PIN_DHT = board.D4 # BCM 4
 # PIN_MOTION = 21 # WPi 29
 PIN_MOTION = 10
-PIN_LED = 0 # Placeholder
+PIN_LED = 21
 
 TIMEOUT = 30
 
@@ -39,6 +39,8 @@ lcd = LCD(width=16, rows=2)
 encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0, wrap=False, )
 button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
 dht_sensor = adafruit_dht.DHT11(PIN_DHT)
+led = gpiozero.LED(PIN_LED)
+led.on()
 
 try: 
     temperature_c = dht_sensor.temperature
@@ -56,7 +58,7 @@ motion_sensor.when_no_motion = lambda: print("No Motion Detected")
 all_input_menu = InputMenu(options='all', lcd=lcd, max_input_length=14, min_input_length=1)
 letters_input_menu = InputMenu(options='letters', lcd=lcd, max_input_length=14, min_input_length=1)
 digit_input_menu = InputMenu(options='digits', lcd=lcd, max_input_length=1, min_input_length=1)
-menu = initialize_menu(lcd=lcd, dht_sensor=dht_sensor) # initialize the LCD menu sturcture
+menu = initialize_menu(lcd=lcd, dht_sensor=dht_sensor, led=led, motion_sensor=motion_sensor) # initialize the LCD menu sturcture
 
 ###################### Helpers ######################
 last_interaction = time.time()
@@ -158,13 +160,17 @@ def read_temperature():
 
 def read_motion_sensor():
     return {"motion": motion_sensor.motion_detected}
+
+def toggle_led():
+    led.toggle()
+    return None
     
 
 sensor_info = [
-    InteractableInfo(0, displayName="humidity", type="humid_sensor", readin=True, action=read_humidity, action_args=None),
-    InteractableInfo(1, displayName="temperature", type="temp_sensor", readin=True, action=read_temperature, action_args=None),
-    InteractableInfo(2, displayName="motion", type="motion_sensor", readin=True, action=read_motion_sensor, action_args=None),
-    InteractableInfo(3, displayName="led", type="bulb", readin=False, action=None),
+    InteractableInfo(0, displayName="Humidity Sensor", type="humid_sensor", readin=True, action=read_humidity, action_args=None),
+    InteractableInfo(1, displayName="Temperature Sensor", type="temp_sensor", readin=True, action=read_temperature, action_args=None),
+    InteractableInfo(2, displayName="Motion Sensor", type="motion_sensor", readin=True, action=read_motion_sensor, action_args=None),
+    InteractableInfo(3, displayName="LED", type="bulb", readin=False, action=toggle_led, action_args=None),
 ]
 
 ir_node = find_menu_node("root-ir-list")

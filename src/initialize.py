@@ -7,7 +7,7 @@ import socket
 
 TIMEOUT = 30
 
-def initialize_menu(lcd, dht_sensor):
+def initialize_menu(lcd, dht_sensor, led, motion_sensor):
     ########## VARS ##########
     start_time = time.time()
     temp, humid = None, None
@@ -26,8 +26,8 @@ def initialize_menu(lcd, dht_sensor):
 
     def ir_send(file, repetition):
         # Send the IR signal
-        subprocess.run(["ir-ctl", "-d", "/dev/lirc1"]+ [f"--send=data/{file}"] * repetition + ["--gap=50000"])
-        # subprocess.run(["ir-ctl", "-d", "/dev/lirc0"]+ [f"--send=data/{file}"] * repetition + ["--gap=50000"])
+        # subprocess.run(["ir-ctl", "-d", "/dev/lirc1"]+ [f"--send=data/{file}"] * repetition + ["--gap=50000"])
+        subprocess.run(["ir-ctl", "-d", "/dev/lirc0"]+ [f"--send=data/{file}"] * repetition + ["--gap=50000"])
         fn_no_ext_rep = file[:file.rfind("-")]
         lcd.text("SENT: ", 1)
         lcd.text(fn_no_ext_rep.center(16), 2)
@@ -42,11 +42,11 @@ def initialize_menu(lcd, dht_sensor):
             lcd.text("Receiving IR...".center(16), 1)
             lcd.text("Timeout in 10sec".center(16), 2)
             result = subprocess.run(
-                # ["ir-ctl", "-d", "/dev/lirc1", f"--receive=data/{filename}", "-1"],
-                ["ir-ctl", "-d", "/dev/lirc0", f"--receive=data/{filename}", "-1"],
+                ["ir-ctl", "-d", "/dev/lirc1", f"--receive=data/{filename}", "-1"],
+                # ["ir-ctl", "-d", "/dev/lirc0", f"--receive=data/{filename}", "-1"],
                 timeout=10
             )
-            new_option = MenuOptions(name=f"root-ir-list-{name}", line1="IR List", line1_marker=False, line2=f"{name}", line2_marker=True, 
+            new_option = MenuOptions(name=f"root-ir-list-{name}", line1="Remote List", line1_marker=False, line2=f"{name}", line2_marker=True, 
                                      action=ir_send, 
                                      action_args={"file": f"{filename}", "repetition": repetition}, 
                                      parent=root_ir_list)
@@ -144,6 +144,21 @@ def initialize_menu(lcd, dht_sensor):
         ss = uptime_seconds % 3600
         root_info_uptime_display.line2 = f"{hh:02}:{mm:02}:{ss:02}".center(16)
         return root_info_uptime_display
+    
+    def show_temp():
+        temp = dht_sensor.temperature
+        lcd.text(f"Temp: {temp}C".center(16), 2)
+        time.sleep(3)
+        
+    def show_humid():
+        humid = dht_sensor.humidity
+        lcd.text(f"Humid: {humid}%".center(16), 2)
+        time.sleep(3)
+        
+    def show_motion():
+        motion = motion_sensor.motion_detected
+        lcd.text(f"Motion: {motion}".center(16), 2)
+        time.sleep(3)
 
     
     ########## MENU OPTIONS ##########
@@ -156,6 +171,16 @@ def initialize_menu(lcd, dht_sensor):
     root_about = MenuOptions(name="root-about", line1="Features", line1_marker=False, line2="About", line2_marker=True, action=about_page, parent=root) # the actioin is a callable function definied above that will display the about page, since it's not going to return anything BUT a workflow (has actioni), it will stay at the current node
     root_back = MenuOptions(name="root-back", line1="Features", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_back.parent, parent=root) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
 
+   # Second level - Devices
+    root_devices_irreceiver = MenuOptions(name="root-devices-ir-receiver", line1="Devices", line1_marker=False, line2="IR Receiver", line2_marker=True, action=None, parent=root_devices)
+    root_devices_irtransmitter = MenuOptions(name="root-devices-ir-transmitter", line1="Devices", line1_marker=False, line2="IR Trans", line2_marker=True, action=None, parent=root_devices)
+    root_devices_tempsensor = MenuOptions(name="root-devices-temp-sensor", line1="Devices", line1_marker=False, line2="Temp Sensor", line2_marker=True, action=show_temp, parent=root_devices)
+    root_devices_humsensor = MenuOptions(name="root-devices-hum-sensor", line1="Devices", line1_marker=False, line2="Humid Sensor", line2_marker=True, action=show_humid, parent=root_devices)
+    root_devices_motion = MenuOptions(name="root-devices-motion", line1="Devices", line1_marker=False, line2="MotionSensor", line2_marker=True, action=show_motion, parent=root_devices)
+    root_devices_led = MenuOptions(name="root-devices-led", line1="Devices", line1_marker=False, line2="LED", line2_marker=True, action=lambda: led.toggle(), parent=root_devices)
+    root_devices_back = MenuOptions(name="root-devices-back", line1="Devices", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_devices_back.parent, parent=root_devices) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
+   
+   
     # Second level - Info
     root_info_ip = MenuOptions(name="root-info-ip", line1="Info", line1_marker=False, line2="IP Address", line2_marker=True, action=update_info_ip, parent=root_info)
     root_info_uptime = MenuOptions(name="root-info-uptime", line1="Info", line1_marker=False, line2="Uptime", line2_marker=True, action=update_info_uptime, parent=root_info)
