@@ -111,9 +111,9 @@ def initialize_menu(lcd, dht_sensor):
     root = MenuOptions(name="dummy", line1="HH:RR MM/DD/YYYY", line1_marker=False, line2="T:XXC H:XX%", line2_marker=False, action=update_root_stats, parent=None) 
     
     # First level
-    root_stat = MenuOptions(name="root-stat", line1="Features", line1_marker=False, line2="Stats", line2_marker=True, action=None, parent=root)
     root_ir = MenuOptions(name="root-ir", line1="Features", line1_marker=False, line2="IR Remote", line2_marker=True, action=None, parent=root)
-    root_sensors = MenuOptions(name="root-sensors", line1="Features", line1_marker=False, line2="Sensors", line2_marker=True, action=None, parent=root)
+    root_info = MenuOptions(name="root-stat", line1="Features", line1_marker=False, line2="Info", line2_marker=True, action=None, parent=root)
+    root_devices = MenuOptions(name="root-sensors", line1="Features", line1_marker=False, line2="Devices", line2_marker=True, action=None, parent=root)
     root_about = MenuOptions(name="root-about", line1="Features", line1_marker=False, line2="About", line2_marker=True, action=about_page, parent=root) # the actioin is a callable function definied above that will display the about page, since it's not going to return anything BUT a workflow (has actioni), it will stay at the current node
     root_back = MenuOptions(name="root-back", line1="Features", line1_marker=False, line2="Back", line2_marker=True, action=lambda: root_back.parent, parent=root) # this lambda function allow it to serve as a BACK button (i.e., go to parent node)
 
