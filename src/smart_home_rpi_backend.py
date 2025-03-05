@@ -24,8 +24,10 @@ gpiozero.pins.lgpio.LGPIOFactory.__init__ = __patched_init
 PIN_SW = 17 # BCM Pin numbers - WiringPi 3
 PIN_DT = 27 # WPi 2
 PIN_CLK = 22 # WPi 0
-PIN_DHT = board.D26 # this is BCM 26
-PIN_MOTION = 21 # WPi 29
+# PIN_DHT = board.D26 # this is BCM 26
+PIN_DHT = board.D4 # BCM 4
+# PIN_MOTION = 21 # WPi 29
+PIN_MOTION = 10
 
 TIMEOUT = 30
 
@@ -36,9 +38,12 @@ encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0,
 button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
 dht_sensor = adafruit_dht.DHT11(PIN_DHT)
 
-temperature_c = dht_sensor.temperature
-humidity = dht_sensor.humidity
-print(f"Temp: {temperature_c}C, Humidity: {humidity}%")
+try: 
+    temperature_c = dht_sensor.temperature
+    humidity = dht_sensor.humidity
+    print(f"Temp: {temperature_c}C, Humidity: {humidity}%")
+except Exception as e:
+    print(e)
 
 
 motion_sensor = gpiozero.MotionSensor(PIN_MOTION) # motion sensor doesn't really work for some reason
