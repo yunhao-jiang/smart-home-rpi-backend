@@ -10,6 +10,7 @@ from rpi_lcd import LCD
 import threading
 import board
 import adafruit_dht
+from anytree.search import findall
 
 def __patched_init(self, chip=None):
     gpiozero.pins.lgpio.LGPIOFactory.__bases__[0].__init__(self)
@@ -28,6 +29,7 @@ PIN_CLK = 22 # WPi 0
 PIN_DHT = board.D4 # BCM 4
 # PIN_MOTION = 21 # WPi 29
 PIN_MOTION = 10
+PIN_LED = 0 # Placeholder
 
 TIMEOUT = 30
 
@@ -121,16 +123,90 @@ def on_button_pressed():
 
 button.when_pressed = on_button_pressed
 
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    menu.clear()
-    print("Clearing the screen and exiting program.")
+
+class InteractableInfo(object):
+    def __init__(self, id, displayName, type, readin, action=None, action_args=None):
+        self.id = id
+        self.displayName = displayName
+        self.type = type
+        self.readin = readin
+        self.action = action
+        self.action_args = action_args
+    def base_to_dict(self):
+        return {"id": self.id, "displayName": self.displayName}
+
+def find_menu_node(name):
+    global menu
+    node_list = findall(menu.root, filter_=lambda menu_node: menu_node.name==name)
+    return node_list[0]
+
+def read_humidity(node):
+    print("reading humidity!")
+    temp_str_line = node.line2
+    l_idx, r_idx = temp_str_line.rfind(":") + 1, temp_str_line.rfind("H")
+    return {"humidity": temp_str_line[l_idx:r_idx]}
+
+def read_temperature(node):
+    temp_str_line = node.line2
+    l_idx, r_idx = temp_str_line.find(":") + 1, temp_str_line.find("C")
+    return {"temperature": temp_str_line[l_idx:r_idx]}
+
+def read_motion_sensor():
+    # Not sure what to do
+    return
+
+sensor_info = [
+    InteractableInfo(0, displayName="humidity", type="humid_sensor", readin=True, action=read_humidity, action_args={'node': find_menu_node("dummy")}),
+    InteractableInfo(1, displayName="temperature", type="temp_sensor", readin=True, action=read_temperature, action_args={'node': find_menu_node("dummy")}),
+    InteractableInfo(2, displayName="motion", type="motion_sensor", readin=True, action=None),
+    InteractableInfo(3, displayName="led", type="onandoff", readin=False, action=None),
+]
+
+ir_node = find_menu_node("root-ir-list")
+def get_ir_list():
+    global ir_node
+    ir_list = []
+    n = len(sensor_info)
+    for j, child in enumerate(ir_node.children):
+        child_info = InteractableInfo(id=j+1+n, displayName=child.line2, type="ir", readin=False,
+                                      action=child.action, action_args=child.action_args)
+        ir_list.append(child_info)
+    return ir_list
+
+app = Flask(__name__)
+@app.get('/api_init')
+def api_init():
+    global sensor_info
+    ir_list = get_ir_list()
+    return jsonify([info.base_to_dict() for info in sensor_info + ir_list])
+
+@app.route('/api_post', methods=['GET', 'POST'])
+def api_post():
+    global sensor_info
+    ir_list = get_ir_list()
+    id = request.args.get('id', None)
+    if id is None or type(id) is not int:
+        return
+    id = int(id)
+    if id <= len(sensor_info):
+        info = sensor_info[id]
+    else:
+        info = ir_list[id - len(sensor_info)]
+    result = info.action(**info.action_args)
+    if result is not None:
+        return jsonify(result)
 
 # Do not implement code to communicate with IR here. Put it as a customize function in initialize.py
 
 
+try:
+    app.run()
+    # while True:
+        # time.sleep(1)
+    # Start the flask app and handle API requests, Do not implement yet
+except KeyboardInterrupt:
+    menu.clear()
+    print("Clearing the screen and exiting program.")
 
 
 
@@ -138,6 +214,3 @@ except KeyboardInterrupt:
 
 
 
-
-# Start the flask app and handle API requests, Do not implement yet
-# app = Flask(__name__)

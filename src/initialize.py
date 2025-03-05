@@ -112,8 +112,8 @@ def initialize_menu(lcd, dht_sensor):
                 avg_temp, avg_humid = temp, humid
             else:
                 uptime_seconds = time.time() - start_time
-                avg_temp = ((uptime_seconds - TIMEOUT) * avg_temp + TIMEOUT * temp ) / uptime_seconds
-                avg_humid = ((uptime_seconds - TIMEOUT) * avg_humid + TIMEOUT * humid ) / uptime_seconds
+                avg_temp = ((uptime_seconds - TIMEOUT) * avg_temp + TIMEOUT * temp) / uptime_seconds
+                avg_humid = ((uptime_seconds - TIMEOUT) * avg_humid + TIMEOUT * humid) / uptime_seconds
             root_info_avgth_display.line2 = f"T:{avg_temp:.1f}C H:{avg_humid:.1f}%".center(16)
         except Exception as e:
             # handle the case where reading error happens on start up
