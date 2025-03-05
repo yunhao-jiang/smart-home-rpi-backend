@@ -48,7 +48,7 @@ except Exception as e:
     print(e)
 
 
-motion_sensor = gpiozero.MotionSensor(PIN_MOTION) # motion sensor doesn't really work for some reason
+motion_sensor = gpiozero.MotionSensor(PIN_MOTION) 
 motion_sensor.when_motion = lambda: print("Motion Detected")
 motion_sensor.when_no_motion = lambda: print("No Motion Detected")
 
@@ -133,33 +133,38 @@ class InteractableInfo(object):
         self.action = action
         self.action_args = action_args
     def base_to_dict(self):
-        return {"id": self.id, "displayName": self.displayName}
+        return {"id": self.id, "displayName": self.displayName, "type": self.type}
 
 def find_menu_node(name):
     global menu
     node_list = findall(menu.root, filter_=lambda menu_node: menu_node.name==name)
     return node_list[0]
 
-def read_humidity(node):
-    print("reading humidity!")
-    temp_str_line = node.line2
-    l_idx, r_idx = temp_str_line.rfind(":") + 1, temp_str_line.rfind("H")
-    return {"humidity": temp_str_line[l_idx:r_idx]}
+def read_humidity():
+    try:
+        humidity = dht_sensor.humidity
+    except Exception as e:
+        print(e)
+        humidity = 0
+    return {"humidity": humidity}
 
-def read_temperature(node):
-    temp_str_line = node.line2
-    l_idx, r_idx = temp_str_line.find(":") + 1, temp_str_line.find("C")
-    return {"temperature": temp_str_line[l_idx:r_idx]}
+def read_temperature():
+    try:
+        temperature_c = dht_sensor.temperature
+    except Exception as e:
+        print(e)
+        temperature_c = 0
+    return {"temperature": temperature_c}
 
 def read_motion_sensor():
-    # Not sure what to do
-    return
+    return {"motion": motion_sensor.motion_detected}
+    
 
 sensor_info = [
-    InteractableInfo(0, displayName="humidity", type="humid_sensor", readin=True, action=read_humidity, action_args={'node': find_menu_node("dummy")}),
-    InteractableInfo(1, displayName="temperature", type="temp_sensor", readin=True, action=read_temperature, action_args={'node': find_menu_node("dummy")}),
-    InteractableInfo(2, displayName="motion", type="motion_sensor", readin=True, action=None),
-    InteractableInfo(3, displayName="led", type="onandoff", readin=False, action=None),
+    InteractableInfo(0, displayName="humidity", type="humid_sensor", readin=True, action=read_humidity, action_args=None),
+    InteractableInfo(1, displayName="temperature", type="temp_sensor", readin=True, action=read_temperature, action_args=None),
+    InteractableInfo(2, displayName="motion", type="motion_sensor", readin=True, action=read_motion_sensor, action_args=None),
+    InteractableInfo(3, displayName="led", type="bulb", readin=False, action=None),
 ]
 
 ir_node = find_menu_node("root-ir-list")
@@ -168,7 +173,10 @@ def get_ir_list():
     ir_list = []
     n = len(sensor_info)
     for j, child in enumerate(ir_node.children):
-        child_info = InteractableInfo(id=j+1+n, displayName=child.line2, type="ir", readin=False,
+        if "Back" in child.line2:
+            continue
+        name = child.line2[1:15].strip()
+        child_info = InteractableInfo(id=j+n, displayName=name, type="ir", readin=False,
                                       action=child.action, action_args=child.action_args)
         ir_list.append(child_info)
     return ir_list
@@ -184,26 +192,20 @@ def api_init():
 def api_post():
     global sensor_info
     ir_list = get_ir_list()
-    id = request.args.get('id', None)
-    if id is None or type(id) is not int:
-        return
-    id = int(id)
-    if id <= len(sensor_info):
+    id = int(request.args.get('id', None))
+    if id < len(sensor_info):
         info = sensor_info[id]
     else:
         info = ir_list[id - len(sensor_info)]
-    result = info.action(**info.action_args)
+        
+    result = info.action(**info.action_args) if info.action_args else info.action()
     if result is not None:
         return jsonify(result)
-
-# Do not implement code to communicate with IR here. Put it as a customize function in initialize.py
-
+    else:
+        return jsonify("Done")
 
 try:
-    app.run()
-    # while True:
-        # time.sleep(1)
-    # Start the flask app and handle API requests, Do not implement yet
+    app.run("0.0.0.0")
 except KeyboardInterrupt:
     menu.clear()
     print("Clearing the screen and exiting program.")
