@@ -50,8 +50,7 @@ current_freq = freq_lib.get_cur_freq()
 lcd = LCD(width=16, rows=2)
 encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0, wrap=False, )
 button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
-# dht_sensor = adafruit_dht.DHT11(PIN_DHT)
-dht_sensor = None
+dht_sensor = adafruit_dht.DHT11(PIN_DHT)
 led = gpiozero.LED(PIN_LED)
 led.on()
 
