@@ -11,6 +11,7 @@ import threading
 import board
 import adafruit_dht
 from anytree.search import findall
+import ctypes
 
 def __patched_init(self, chip=None):
     gpiozero.pins.lgpio.LGPIOFactory.__bases__[0].__init__(self)
@@ -34,11 +35,23 @@ PIN_LED = 21
 TIMEOUT = 30
 
 ###################### Devices & Initilization ######################
+# CPU
+freq_lib = ctypes.CDLL("./src/libgovernor.so")
+freq_lib.init_userspace_governor.restype = None
+freq_lib.set_by_max_freq.restype = None
+freq_lib.set_by_min_freq.restype = None
+freq_lib.get_cur_freq.restype = ctypes.c_int
+freq_lib.init_userspace_governor()
+current_freq = freq_lib.get_cur_freq()
+freq_lib.set_by_min_freq()
+current_freq = freq_lib.get_cur_freq()
+
 # Hardware
 lcd = LCD(width=16, rows=2)
 encoder = gpiozero.RotaryEncoder(PIN_CLK, PIN_DT, bounce_time=0.01, max_steps=0, wrap=False, )
 button = gpiozero.Button(PIN_SW, bounce_time=0.01, pull_up=True)
-dht_sensor = adafruit_dht.DHT11(PIN_DHT)
+# dht_sensor = adafruit_dht.DHT11(PIN_DHT)
+dht_sensor = None
 led = gpiozero.LED(PIN_LED)
 led.on()
 
