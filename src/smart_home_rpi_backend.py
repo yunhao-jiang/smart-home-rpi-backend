@@ -12,6 +12,7 @@ import board
 import adafruit_dht
 from anytree.search import findall
 import ctypes
+import os
 
 def __patched_init(self, chip=None):
     gpiozero.pins.lgpio.LGPIOFactory.__bases__[0].__init__(self)
@@ -36,7 +37,7 @@ TIMEOUT = 30
 
 ###################### Devices & Initilization ######################
 # CPU
-freq_lib = ctypes.CDLL("./src/libgovernor.so")
+freq_lib = ctypes.CDLL(os.path.dirname(os.path.abspath(__file__)) + "libgovernor.so")
 freq_lib.init_userspace_governor.restype = None
 freq_lib.set_by_max_freq.restype = None
 freq_lib.set_by_min_freq.restype = None
