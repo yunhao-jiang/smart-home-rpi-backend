@@ -37,15 +37,15 @@ TIMEOUT = 30
 
 ###################### Devices & Initilization ######################
 # CPU
-freq_lib = ctypes.CDLL(os.path.dirname(os.path.abspath(__file__)) + "libgovernor.so")
-freq_lib.init_userspace_governor.restype = None
-freq_lib.set_by_max_freq.restype = None
-freq_lib.set_by_min_freq.restype = None
-freq_lib.get_cur_freq.restype = ctypes.c_int
-freq_lib.init_userspace_governor()
-current_freq = freq_lib.get_cur_freq()
-freq_lib.set_by_min_freq()
-current_freq = freq_lib.get_cur_freq()
+# freq_lib = ctypes.CDLL(os.path.dirname(os.path.abspath(__file__)) + "/libgovernor.so")
+# freq_lib.init_userspace_governor.restype = None
+# freq_lib.set_by_max_freq.restype = None
+# freq_lib.set_by_min_freq.restype = None
+# freq_lib.get_cur_freq.restype = ctypes.c_int
+# freq_lib.init_userspace_governor()
+# print(freq_lib.get_cur_freq())
+# freq_lib.set_by_min_freq()
+# print(freq_lib.get_cur_freq())
 
 # Hardware
 lcd = LCD(width=16, rows=2)
