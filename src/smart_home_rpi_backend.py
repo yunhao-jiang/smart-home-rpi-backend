@@ -192,8 +192,8 @@ def get_ir_list():
     ir_list = []
     n = len(sensor_info)
     for j, child in enumerate(ir_node.children):
-        if "Back" in child.line2:
-            continue
+        # if "Back" in child.line2:
+        #     continue
         name = child.line2[1:15].strip()
         child_info = InteractableInfo(id=j+n, displayName=name, type="ir", readin=False,
                                       action=child.action, action_args=child.action_args)
